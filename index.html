@@ -6,9 +6,332 @@
     <title>Battle Buddy 2.0</title>
     <meta name="description" content="Battle Buddy 2.0 - Real-Time Soldier Health and Location Monitoring System" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <header class="hero" id="home">
+      <nav class="navbar container" aria-label="Main navigation">
+        <div class="logo">Battle Buddy 2.0</div>
+        <div class="nav-links">
+          <a href="#home">Home</a>
+          <a href="#domain">Domain</a>
+          <a href="#milestones">Milestones</a>
+          <a href="#documents">Documents</a>
+          <a href="#presentations">Slides</a>
+          <a href="#about">About Us</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </nav>
+
+      <div class="hero-content container">
+        <div class="hero-text">
+          <p class="eyebrow">Wearable IoT Research Project</p>
+          <h1>Real-Time Soldier Health and Location Monitoring System</h1>
+          <p class="lead">
+            Battle Buddy 2.0 is a wearable frontline support system designed to monitor soldier
+            vital signs, detect falls, track location, and transmit alerts to headquarters using
+            secure long-range communication.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#domain">Explore Project</a>
+            <a class="btn secondary" href="#about">Team Details</a>
+          </div>
+        </div>
+        <div class="hero-panel card">
+          <h3>Core Features</h3>
+          <ul>
+            <li>Heart Rate, SpO₂, and Temperature Monitoring</li>
+            <li>Fall Detection using MPU6050</li>
+            <li>GPS Tracking with Remote Updates</li>
+            <li>LoRa-Based Long-Range Communication</li>
+            <li>Emergency SOS and Command Feedback</li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <section id="domain" class="section">
+      <div class="container">
+        <h2>Domain</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Literature Survey</h3>
+            <p>
+              Modern soldier support systems increasingly rely on IoT wearables, embedded sensors,
+              and wireless telemetry to improve battlefield awareness. Prior studies show the value
+              of continuous health monitoring, fall detection, and remote situational reporting,
+              but many solutions are either short-range, power-intensive, or not designed for harsh
+              field conditions.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Research Gap</h3>
+            <p>
+              Existing systems often lack an integrated wearable design that combines health
+              monitoring, fall detection, location awareness, and long-range secure transmission in
+              a practical field-ready format.
+            </p>
+            <p>
+              In addition, many existing monitoring solutions do not provide a lightweight and
+              battlefield-ready visualization layer that combines health data and geolocation in one
+              interface with very low latency.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Research Problem</h3>
+            <p>
+              Soldiers in remote or high-risk environments may suffer injuries, collapse, or lose
+              communication without immediate support. Delayed identification of such incidents can
+              reduce survival chances and compromise mission effectiveness.
+            </p>
+            <p>
+              A major challenge is converting incoming field data into clear, actionable intelligence
+              through a reliable dashboard that remains responsive under limited bandwidth and
+              unstable connectivity.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Research Objectives</h3>
+            <ul>
+              <li>Monitor vital signs in near real time.</li>
+              <li>Detect fall events and emergency conditions quickly.</li>
+              <li>Transmit alerts and status updates over long distances.</li>
+              <li>Provide a simple wearable architecture suitable for field use.</li>
+              <li>Support reliable and secure communication with headquarters.</li>
+              <li>Visualize soldier health and GPS data through an integrated live dashboard.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Methodology</h3>
+            <p>
+              The project uses a two-unit wearable architecture. The wrist unit captures health data
+              using MAX30102 and MLX90614 sensors and sends processed readings via UART. The
+              shoulder unit performs fall detection using MPU6050, acquires GPS coordinates, and
+              forwards integrated data through SX1278 LoRa communication to the monitoring side.
+            </p>
+            <p>
+              For the visualization subsystem, the master ESP32 node forwards parsed data through
+              Wi-Fi using MQTT or HTTP, Node-RED handles backend processing and streaming, and a
+              dashboard presents live metrics, map-based tracking, and alert states.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Technologies Used</h3>
+            <ul>
+              <li>ESP32 Microcontrollers</li>
+              <li>MAX30102 Pulse Oximeter Sensor</li>
+              <li>MLX90614 Temperature Sensor</li>
+              <li>MPU6050 IMU Sensor</li>
+              <li>NEO-M8N GPS Module</li>
+              <li>SX1278 LoRa Module</li>
+              <li>Node-RED Backend Flows</li>
+              <li>MQTT / HTTP Protocols</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card feature-card spaced-top">
+          <h3>Kumbukkotuwa K R D M - Individual Contribution</h3>
+          <p>
+            This project component focuses on real-time data visualization and the system interface
+            for soldier monitoring. It receives parsed sensor data from the master ESP32 node and
+            transforms it into an interactive dashboard for commanders and monitoring personnel.
+          </p>
+          <ul>
+            <li>Developed the real-time dashboard interface using React.js and Node-RED.</li>
+            <li>Displayed soldier health metrics such as heart rate, temperature, SpO₂, and GPS location.</li>
+            <li>Integrated MQTT/HTTP-based communication for low-latency data updates from the master ESP32 node.</li>
+            <li>Implemented intuitive gauges, map-based soldier tracking, and color-coded health indicators.</li>
+            <li>Optimized the dashboard for bandwidth-constrained environments using compact JSON payloads and asynchronous updates.</li>
+          </ul>
+          <p>
+            The novelty of this contribution is a lightweight yet responsive monitoring dashboard that
+            supports real-time decision-making through map-based GPS tracking, health gauges,
+            historical movement visibility, and traffic-light style status indicators.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="milestones" class="section">
+      <div class="container">
+        <h2>Milestones</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="card">
+              <h3>Project Proposal</h3>
+              <p><strong>Date:</strong> Add your date</p>
+              <p><strong>Marks Allocated:</strong> Add marks</p>
+              <p>Initial concept presentation, problem statement, objectives, and proposed solution.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="card">
+              <h3>Progress Presentation 1</h3>
+              <p><strong>Date:</strong> Add your date</p>
+              <p><strong>Marks Allocated:</strong> Add marks</p>
+              <p>Initial implementation progress, hardware setup, and early testing.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="card">
+              <h3>Progress Presentation 2</h3>
+              <p><strong>Date:</strong> Add your date</p>
+              <p><strong>Marks Allocated:</strong> Add marks</p>
+              <p>Integrated system demonstration, module validation, and evaluation progress.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="card">
+              <h3>Final Assessment</h3>
+              <p><strong>Date:</strong> Add your date</p>
+              <p><strong>Marks Allocated:</strong> Add marks</p>
+              <p>Final system demonstration, report submission, and overall evaluation.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="card">
+              <h3>Viva</h3>
+              <p><strong>Date:</strong> Add your date</p>
+              <p><strong>Marks Allocated:</strong> Add marks</p>
+              <p>Individual and group questioning on technical knowledge, implementation, and outcomes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="documents" class="section">
+      <div class="container">
+        <h2>Documents</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Project Charter</h3>
+            <p>Replace this text with a document link or uploaded file URL.</p>
+            <a class="text-link" href="#">Add link</a>
+          </div>
+          <div class="card">
+            <h3>Proposal Document</h3>
+            <p>Replace this text with a document link or uploaded file URL.</p>
+            <a class="text-link" href="#">Add link</a>
+          </div>
+          <div class="card">
+            <h3>Status Documents / Checklists</h3>
+            <p>Replace this text with a document link or uploaded file URL.</p>
+            <a class="text-link" href="#">Add link</a>
+          </div>
+          <div class="card">
+            <h3>Final Thesis Document</h3>
+            <p>Replace this text with a document link or uploaded file URL.</p>
+            <a class="text-link" href="#">Add link</a>
+          </div>
+          <div class="card">
+            <h3>Research Paper</h3>
+            <p>Replace this text with a document link or uploaded file URL.</p>
+            <a class="text-link" href="#">Add link</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="presentations" class="section">
+      <div class="container">
+        <h2>Slides of Past Presentations</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Proposal Presentation</h3>
+            <a class="text-link" href="https://mysliit-my.sharepoint.com/:p:/g/personal/it22168368_my_sliit_lk/IQAgsZIqoyvQSIynr5PwZpfQAdQXSCL6RO87QYu2Z0_WHeE?e=x0TCmm" target="_blank" rel="noopener noreferrer">View Slides</a>
+          </div>
+          <div class="card">
+            <h3>Progress Presentation 1</h3>
+            <p>Replace with the slide deck link for this presentation.</p>
+            <a class="text-link" href="#">Add slide link</a>
+          </div>
+          <div class="card">
+            <h3>Progress Presentation 2</h3>
+            <a class="text-link" href="https://mysliit-my.sharepoint.com/:p:/g/personal/it22168368_my_sliit_lk/IQB3EzHTxKhxS7SpRyQQe1gsAdQJHsS_kekBd5S2NbDO69s?e=cCmw5U" target="_blank" rel="noopener noreferrer">View Slides</a>
+          </div>
+          <div class="card">
+            <h3>Final Presentation</h3>
+            <p>Replace with the slide deck link for this presentation.</p>
+            <a class="text-link" href="#">Add slide link</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <div class="container">
+        <h2>About Us</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Kishoban R.</h3>
+            <p><strong>Role:</strong> Health Monitoring Module</p>
+            <p><strong>Student ID:</strong> IT22171238</p>
+            <p><strong>Email:</strong> add-email@example.com</p>
+          </div>
+          <div class="card">
+            <h3>Mudalige D.H.T.H.</h3>
+            <p><strong>Role:</strong> System Module</p>
+            <p><strong>Student ID:</strong> IT22279248</p>
+            <p><strong>Email:</strong> add-email@example.com</p>
+          </div>
+          <div class="card">
+            <h3>Samarasinghe S.C.D.</h3>
+            <p><strong>Role:</strong> Communication / Security Module</p>
+            <p><strong>Student ID:</strong> IT22073150</p>
+            <p><strong>Email:</strong> add-email@example.com</p>
+          </div>
+          <div class="card">
+            <h3>Kumbukkotuwa K.R.D.M</h3>
+            <p><strong>Role:</strong> Real-Time Data Visualization and System Interface for Soldier Monitoring</p>
+            <p><strong>Student ID:</strong> IT22168368</p>
+            <p><strong>Email:</strong> it22168368@my.sliit.lk</p>
+            <p><strong>Focus Area:</strong> React.js dashboard, Node-RED integration, MQTT/HTTP communication, GPS map visualization, and low-latency health status monitoring.</p>
+            <p><strong>Contribution:</strong> Built the real-time system interface that displays soldier vitals, location updates, and color-coded alerts for rapid operational awareness.</p>
+          </div>
+        </div>
+        <div class="card spaced-top">
+          <h3>Supervisor</h3>
+          <p>Anuradha Jayakody</p>
+          <p>Project ID: 25-26J-014</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <div class="container">
+        <h2>Contact Us</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>General Contact Details</h3>
+            <p><strong>Email:</strong> yourprojectemail@example.com</p>
+            <p><strong>Phone:</strong> +94 XX XXX XXXX</p>
+            <p><strong>Institution:</strong> Sri Lanka Institute of Information Technology (SLIIT)</p>
+          </div>
+          <div class="card">
+            <h3>Quick Contact Template</h3>
+            <form class="contact-form">
+              <input type="text" placeholder="Your Name" />
+              <input type="email" placeholder="Your Email" />
+              <textarea rows="5" placeholder="Your Message"></textarea>
+              <button type="button" class="btn primary">Send Message</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <p>© 2026 Battle Buddy 2.0 Project Website</p>
+        <p>Home • Domain • Milestones • Documents • Presentations • About Us • Contact Us</p>
+      </div>
+    </footer>
   </body>
 </html>
