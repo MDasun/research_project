@@ -316,6 +316,12 @@ h1 {
 .supervisor-card h3 {
   grid-column: 2;
   margin-top: 0;
+  margin-bottom: 0.4rem;
+}
+
+.supervisor-card p {
+  margin: 0 0 0.35rem;
+  line-height: 1.45;
 }
 
 @media (max-width: 880px) {
@@ -447,6 +453,8 @@ h1 {
             <li>Fall Detection using MPU6050</li>
             <li>GPS Tracking with Remote Updates</li>
             <li>LoRa-Based Long-Range Communication</li>
+            <li>ML-Based Health Risk Prediction</li>
+            <li>ML-Based Communication Link Risk Prediction</li>
             <li>Emergency SOS and Command Feedback</li>
           </ul>
         </div>
@@ -479,6 +487,11 @@ h1 {
               battlefield-ready visualization layer that combines health data and geolocation in one
               interface with very low latency.
             </p>
+            <p>
+              Another gap is the lack of predictive decision-support. Most dashboards only display
+              raw sensor readings, but they do not predict health risk levels or communication link
+              reliability using live IoT and network data.
+            </p>
           </div>
           <div class="card">
             <h3>Research Problem</h3>
@@ -492,6 +505,11 @@ h1 {
               through a reliable dashboard that remains responsive under limited bandwidth and
               unstable connectivity.
             </p>
+            <p>
+              The system must also identify possible health deterioration and communication failure
+              risk before they become severe, so commanders can take faster medical and tactical
+              decisions instead of depending only on manual observation.
+            </p>
           </div>
           <div class="card">
             <h3>Research Objectives</h3>
@@ -502,6 +520,8 @@ h1 {
               <li>Provide a simple wearable architecture suitable for field use.</li>
               <li>Support reliable and secure communication with headquarters.</li>
               <li>Visualize soldier health and GPS data through an integrated live dashboard.</li>
+              <li>Predict soldier health risk levels using trend-based sensor features.</li>
+              <li>Predict communication link risk using LoRa network quality features.</li>
             </ul>
           </div>
           <div class="card">
@@ -517,6 +537,12 @@ h1 {
               Wi-Fi using MQTT or HTTP, Node-RED handles backend processing and streaming, and a
               dashboard presents live metrics, map-based tracking, and alert states.
             </p>
+            <p>
+              A prediction layer is added through the backend to process derived health and network
+              features. Health risk is classified as Normal, Warning, or Critical, while communication
+              link risk is classified as Stable, Weak, or High Risk. These outputs are displayed on the
+              dashboard using color-coded alerts and status panels.
+            </p>
           </div>
           <div class="card">
             <h3>Technologies Used</h3>
@@ -528,7 +554,9 @@ h1 {
               <li>NEO-M8N GPS Module</li>
               <li>SX1278 LoRa Module</li>
               <li>Node-RED Backend Flows</li>
+              <li>React.js Dashboard Interface</li>
               <li>MQTT / HTTP Protocols</li>
+              <li>ML Prediction API for Health and Link Risk Classification</li>
             </ul>
           </div>
         </div>
@@ -603,21 +631,40 @@ h1 {
         <div class="card feature-card">
           <h3>Kumbukkotuwa K R D M - Individual Contribution</h3>
           <p>
-            This project component focuses on real-time data visualization and the system interface
-            for soldier monitoring. It receives parsed sensor data from the master ESP32 node and
-            transforms it into an interactive dashboard for commanders and monitoring personnel.
+            This project component focuses on real-time data visualization, system interface
+            development, and predictive decision-support for soldier monitoring. It receives parsed
+            sensor and communication data from the master ESP32 node and transforms it into an
+            interactive dashboard for commanders and monitoring personnel.
+          </p>
+          <p>
+            The dashboard displays live health metrics such as heart rate, SpO₂, body temperature,
+            GPS location, movement history, and communication status. In addition to real-time
+            visualization, a machine-learning-based risk prediction layer is integrated to classify
+            soldier health status and communication link reliability.
+          </p>
+          <p>
+            For health risk prediction, the system uses derived features such as heart-rate trend,
+            SpO₂ trend, temperature trend, movement speed, stop duration, and packet-loss rate to
+            classify the soldier condition as Normal, Warning, or Critical. For link risk prediction,
+            communication-related features such as RSSI, SNR, latency, hop count, and packet-loss
+            rate are used to identify whether the communication link is Stable, Weak, or High Risk.
           </p>
           <ul>
             <li>Developed the real-time dashboard interface using React.js and Node-RED.</li>
-            <li>Displayed soldier health metrics such as heart rate, temperature, SpO₂, and GPS location.</li>
+            <li>Displayed soldier health metrics such as heart rate, SpO₂, body temperature, GPS location, movement history, and communication status.</li>
             <li>Integrated MQTT/HTTP-based communication for low-latency data updates from the master ESP32 node.</li>
-            <li>Implemented intuitive gauges, map-based soldier tracking, and color-coded health indicators.</li>
+            <li>Implemented intuitive gauges, map-based soldier tracking, alert panels, and color-coded health indicators.</li>
+            <li>Integrated ML-based health risk prediction using trend-based sensor features.</li>
+            <li>Integrated ML-based communication link risk prediction using LoRa network features.</li>
+            <li>Connected prediction outputs to dashboard alerts for real-time decision support.</li>
             <li>Optimized the dashboard for bandwidth-constrained environments using compact JSON payloads and asynchronous updates.</li>
           </ul>
           <p>
-            The novelty of this contribution is a lightweight yet responsive monitoring dashboard that
-            supports real-time decision-making through map-based GPS tracking, health gauges,
-            historical movement visibility, and traffic-light style status indicators.
+            The novelty of this contribution lies in combining real-time visualization with predictive
+            decision-support. Instead of only displaying raw sensor readings, the dashboard converts
+            live IoT data into actionable risk levels, helping commanders identify critical health
+            conditions and unreliable communication links before they become severe operational
+            failures.
           </p>
         </div>
       </div>
