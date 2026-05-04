@@ -13,6 +13,9 @@ Add profile images for team members and supervisor in this folder.
 ### Supervisor:
 - `supervisor.jpg` - Prof. Anuradha Jayakody
 
+### Co-Supervisor:
+- `co-super.jpeg` - Mr. Dinith Primal
+
 ## Image Guidelines
 
 - **Format**: JPG or PNG
