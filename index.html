@@ -1,0 +1,1677 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Battle Buddy 2.0 — Real-Time Soldier Monitoring System</title>
+  <meta name="description" content="Battle Buddy 2.0 - Real-Time Soldier Health and Location Monitoring System — SLIIT Research Project 25-26J-014" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    /* ===================== RESET & ROOT ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    :root {
+      --black:   #050A0E;
+      --deep:    #070E14;
+      --navy:    #091320;
+      --panel:   rgba(255,255,255,0.04);
+      --border:  rgba(255,255,255,0.08);
+      --border2: rgba(0,200,120,0.18);
+      --text:    #C8D8E8;
+      --muted:   #6A8099;
+      --green:   #00C87A;
+      --green2:  #00FF9C;
+      --amber:   #FFB830;
+      --red:     #FF3B3B;
+      --cyan:    #00D4FF;
+      --max:     1240px;
+      --mono:    'JetBrains Mono', monospace;
+      --display: 'Poppins', sans-serif;
+      --body:    'Inter', sans-serif;
+    }
+
+    body {
+      font-family: var(--body);
+      background: var(--black);
+      color: var(--text);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2.5rem));
+      margin: 0 auto;
+    }
+
+    /* ===================== NOISE TEXTURE ===================== */
+    .noise {
+      position: relative;
+    }
+    .noise::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    /* ===================== SCROLLBAR ===================== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--deep); }
+    ::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }
+
+    /* ===================== TAG / LABEL ===================== */
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--green);
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      display: inline-block;
+      background: rgba(0,200,122,0.06);
+    }
+
+    /* ===================== NAV ===================== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: rgba(5,10,14,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 0;
+    }
+
+    .nav-logo {
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: 1.4rem;
+      letter-spacing: 0.03em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-logo .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.25rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.4rem 0.75rem;
+      border-radius: 2px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--green);
+      background: rgba(0,200,122,0.08);
+    }
+
+    .nav-pid {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+    .nav-pid span { color: var(--amber); }
+
+    /* ===================== HERO ===================== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding-top: 5rem;
+    }
+
+    /* Animated grid */
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,122,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,122,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black, transparent);
+    }
+
+    /* Radar sweep */
+    .radar {
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 700px;
+      height: 700px;
+      opacity: 0.06;
+      animation: spin 20s linear infinite;
+    }
+    .radar circle { fill: none; stroke: var(--green); }
+    .radar line { stroke: var(--green); stroke-width: 1; }
+    .radar .sweep {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 2;
+      opacity: 1;
+    }
+
+    @keyframes spin { from { transform: translateY(-50%) rotate(0deg); } to { transform: translateY(-50%) rotate(360deg); } }
+
+    /* Glow blob */
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,200,122,0.08) 0%, transparent 70%);
+      top: 50%;
+      left: 35%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 4rem;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      padding: 4rem 0 3rem;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .eyebrow-line {
+      width: 40px;
+      height: 1px;
+      background: var(--green);
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: clamp(2.4rem, 4.5vw, 4.8rem);
+      line-height: 0.97;
+      letter-spacing: -0.015em;
+      color: #fff;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 .accent { color: var(--green); }
+    h1 .stroke {
+      color: rgba(255,255,255,0.82);
+      -webkit-text-stroke: 0;
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 520px;
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.85rem 2rem;
+      border-radius: 2px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: #020a06;
+    }
+    .btn-primary:hover {
+      background: var(--green2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,200,122,0.35);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      border-color: var(--green);
+      color: var(--green);
+      transform: translateY(-2px);
+    }
+
+    /* Hero panel */
+    .hero-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), transparent);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+
+    .panel-status {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--green);
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.5s infinite;
+    }
+
+    .feat-list {
+      list-style: none;
+    }
+    .feat-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .feat-list li:last-child { border-bottom: none; }
+    .feat-list .icon {
+      font-family: var(--mono);
+      color: var(--green);
+      font-size: 0.75rem;
+      margin-top: 0.15rem;
+      flex-shrink: 0;
+    }
+
+    /* ===================== SECTION HEADERS ===================== */
+    .section-header {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .section-num {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--green);
+      letter-spacing: 0.1em;
+      writing-mode: vertical-lr;
+      transform: rotate(180deg);
+      white-space: nowrap;
+    }
+
+    .section-title-wrap { }
+
+    h2 {
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      color: #fff;
+      line-height: 1;
+    }
+    h2 .dim { color: var(--muted); }
+    .section-rule {
+      height: 1px;
+      background: linear-gradient(90deg, var(--green), transparent);
+      margin-top: 0.75rem;
+      width: 200px;
+    }
+
+    /* ===================== SECTIONS ===================== */
+    .section {
+      padding: 6rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ===================== CARDS ===================== */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.75rem;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 2px;
+      height: 0;
+      background: var(--green);
+      transition: height 0.4s ease;
+    }
+    .card:hover::before { height: 100%; }
+    .card:hover {
+      border-color: var(--border2);
+      transform: translateY(-4px);
+    }
+
+    h3 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: #fff;
+      margin-bottom: 0.75rem;
+    }
+
+    p, li { line-height: 1.72; color: var(--muted); font-size: 0.96rem; font-weight: 500; }
+    ul { padding-left: 1rem; }
+    ul li { margin-bottom: 0.3rem; }
+
+    /* ===================== GRID ===================== */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+
+    /* ===================== DOMAIN SECTION ===================== */
+    .domain-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+
+    .domain-card-accent {
+      grid-column: span 2;
+      border-color: rgba(0,200,122,0.2);
+      background: linear-gradient(135deg, rgba(0,200,122,0.04) 0%, rgba(0,212,255,0.02) 100%);
+    }
+
+    /* ===================== TECH PILLS ===================== */
+    .tech-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .tech-pill {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      background: rgba(0,200,122,0.08);
+      border: 1px solid rgba(0,200,122,0.2);
+      color: var(--green);
+      padding: 0.25rem 0.65rem;
+      border-radius: 2px;
+    }
+
+    /* ===================== INDIVIDUAL CONTRIBUTIONS ===================== */
+    .contrib-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+    .contrib-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .contrib-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-3px);
+    }
+    .contrib-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .contrib-card:hover::after { opacity: 1; }
+
+    .contrib-num {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--green);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+    .contrib-name {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+    .contrib-role {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--cyan);
+      letter-spacing: 0.06em;
+      margin-bottom: 0.85rem;
+    }
+    .contrib-list {
+      list-style: none;
+      padding: 0;
+    }
+    .contrib-list li {
+      font-size: 0.875rem;
+      color: var(--muted);
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .contrib-list li::before {
+      content: '›';
+      color: var(--green);
+      flex-shrink: 0;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    /* ===================== MILESTONES ===================== */
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 160px;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg, var(--green), rgba(0,200,122,0.1));
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 2rem;
+      position: relative;
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .timeline-item:last-child { border-bottom: none; }
+
+    .tl-date {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--amber);
+      text-align: right;
+      padding-top: 0.15rem;
+    }
+
+    .tl-dot {
+      position: absolute;
+      left: 154px;
+      top: 2.4rem;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      border: 2px solid var(--black);
+      box-shadow: 0 0 12px rgba(0,200,122,0.5);
+    }
+
+    .tl-content { }
+    .tl-title {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #fff;
+      margin-bottom: 0.4rem;
+    }
+    .tl-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    /* ===================== DOCUMENTS ===================== */
+    .doc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
+    .doc-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: all 0.3s;
+    }
+    .doc-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-3px);
+    }
+
+    .doc-icon {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      color: var(--green);
+    }
+    .doc-name {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #fff;
+    }
+    .doc-link {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--green);
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: auto;
+      transition: color 0.2s;
+    }
+    .doc-link:hover { color: var(--green2); }
+    .doc-link::after { content: '→'; }
+
+    /* Slides section same cards */
+    .slide-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      transition: all 0.3s;
+    }
+    .slide-card:hover { border-color: rgba(0,212,255,0.25); transform: translateY(-3px); }
+    .slide-icon {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      color: var(--cyan);
+    }
+    .slide-name {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #fff;
+    }
+    .slide-link {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: auto;
+      transition: color 0.2s;
+    }
+    .slide-link:hover { color: #7feeff; }
+    .slide-link::after { content: '→'; }
+
+    /* ===================== TEAM SECTION ===================== */
+    .team-outer {
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+    }
+
+    /* Supervisor cards — horizontal layout */
+    .supervisor-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+
+    .sup-card {
+      background: var(--panel);
+      border: 1px solid rgba(255,184,48,0.2);
+      border-radius: 4px;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+      transition: all 0.3s;
+    }
+    .sup-card:hover { border-color: rgba(255,184,48,0.4); transform: translateY(-3px); }
+
+    .sup-img-wrap {
+      width: 80px; height: 80px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255,184,48,0.2);
+      background: rgba(255,184,48,0.04);
+      flex-shrink: 0;
+    }
+    .sup-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+
+    .sup-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--amber);
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+    .sup-name {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+    .sup-meta {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .sup-meta a { color: var(--amber); }
+
+    /* Member grid */
+    .member-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+
+    .member-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .member-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-4px);
+    }
+
+    .member-img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .member-info { padding: 1rem; }
+
+    .member-id {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: var(--green);
+      margin-bottom: 0.25rem;
+    }
+
+    .member-name {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: #fff;
+      margin-bottom: 0.2rem;
+    }
+
+    .member-role {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--cyan);
+      letter-spacing: 0.06em;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .member-email {
+      font-family: var(--mono);
+      font-size: 0.63rem;
+      color: var(--muted);
+    }
+
+    /* ===================== CONTACT ===================== */
+    .contact-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    .contact-info { }
+    .contact-info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ci-icon {
+      font-family: var(--mono);
+      font-size: 1rem;
+      color: var(--green);
+      flex-shrink: 0;
+      width: 24px;
+    }
+    .ci-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+    .ci-value { font-size: 0.9rem; color: var(--text); font-weight: 600; }
+
+    .contact-form-wrap {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2rem;
+      position: relative;
+    }
+    .contact-form-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), transparent);
+    }
+
+    .form-title {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: var(--body);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.75rem 1rem;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-submit {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--cyan);
+      color: #020c10;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 2px;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { background: #7feeff; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,0.25); }
+
+    /* ===================== FOOTER ===================== */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 0;
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .footer-left {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+    .footer-left span { color: var(--green); }
+    .footer-right {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    /* ===================== ANIMATIONS ===================== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 1024px) {
+      .member-grid { grid-template-columns: repeat(2, 1fr); }
+      .doc-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 860px) {
+      .hero-content { grid-template-columns: 1fr; }
+      .hero-panel { display: none; }
+      .domain-grid { grid-template-columns: 1fr; }
+      .domain-card-accent { grid-column: span 1; }
+      .contrib-grid { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .supervisor-row { grid-template-columns: 1fr; }
+      .timeline::before { left: 0; }
+      .timeline-item { grid-template-columns: 1fr; gap: 0.5rem; }
+      .tl-date { text-align: left; }
+      .tl-dot { left: -6px; }
+      .timeline-item { padding-left: 1.5rem; }
+      .contact-wrap { grid-template-columns: 1fr; }
+      .radar { display: none; }
+      .nav-pid { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .nav-links a { font-size: 0.6rem; padding: 0.35rem 0.5rem; }
+      .member-grid { grid-template-columns: 1fr 1fr; }
+      .doc-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner container">
+    <div class="nav-logo">
+      <div class="dot"></div>
+      Battle Buddy 2.0
+    </div>
+    <div class="nav-links">
+      <a href="#domain">Domain</a>
+      <a href="#contributions">Modules</a>
+      <a href="#milestones">Timeline</a>
+      <a href="#documents">Documents</a>
+      <a href="#slides">Slides</a>
+      <a href="#team">Team</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="nav-pid">PROJECT ID <span>25-26J-014</span></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero noise" id="home">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <svg class="radar" viewBox="0 0 700 700">
+    <circle cx="350" cy="350" r="300" stroke-opacity="0.5"/>
+    <circle cx="350" cy="350" r="200" stroke-opacity="0.4"/>
+    <circle cx="350" cy="350" r="100" stroke-opacity="0.3"/>
+    <line x1="350" y1="50" x2="350" y2="650" stroke-opacity="0.3"/>
+    <line x1="50" y1="350" x2="650" y2="350" stroke-opacity="0.3"/>
+    <path d="M350,350 L650,350 A300,300 0 0,1 350,650 Z" class="sweep" opacity="0.15" fill="url(#sweepGrad)"/>
+    <defs>
+      <radialGradient id="sweepGrad">
+        <stop offset="0%" stop-color="#00C87A" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#00C87A" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text fade-in">
+        <div class="eyebrow">
+          <div class="eyebrow-line"></div>
+          <span class="tag">Wearable IoT — SLIIT Research 2026</span>
+        </div>
+        <h1>
+          Real-Time<br>
+          <span class="accent">Soldier</span><br>
+          <span class="stroke">Monitoring</span>
+        </h1>
+        <p class="hero-desc">
+          Battle Buddy 2.0 is a wearable frontline support system that monitors soldier vital signs, detects falls, tracks GPS location, and transmits encrypted alerts to headquarters via long-range LoRa communication.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#domain">Explore Project</a>
+          <a class="btn btn-outline" href="#team">Meet the Team</a>
+        </div>
+      </div>
+
+      <div class="hero-panel fade-in" style="animation-delay: 0.2s">
+        <div class="panel-header">
+          <span class="panel-title">// sys.features</span>
+          <div class="panel-status"><div class="status-dot"></div>ACTIVE</div>
+        </div>
+        <ul class="feat-list">
+          <li><span class="icon">[01]</span> Heart Rate, SpO₂ &amp; Temperature Monitoring</li>
+          <li><span class="icon">[02]</span> Fall Detection via MPU6050 IMU</li>
+          <li><span class="icon">[03]</span> GPS Tracking with Remote Updates</li>
+          <li><span class="icon">[04]</span> LoRa Long-Range Encrypted Communication</li>
+          <li><span class="icon">[05]</span> ML-Based Health Risk Prediction</li>
+          <li><span class="icon">[06]</span> ML-Based Link Quality Prediction</li>
+          <li><span class="icon">[07]</span> Emergency SOS &amp; Command Feedback</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- DOMAIN -->
+<section class="section" id="domain">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-num">01 — DOMAIN</div>
+      <div class="section-title-wrap">
+        <h2>Research <span class="dim">Domain</span></h2>
+        <div class="section-rule"></div>
+      </div>
+    </div>
+
+    <div class="domain-grid">
+      <div class="card fade-in">
+        <div class="tag" style="margin-bottom:0.75rem">Literature Survey</div>
+        <p>Modern soldier support systems increasingly rely on IoT wearables, embedded sensors, and wireless telemetry to improve battlefield awareness. Prior studies show the value of continuous health monitoring, fall detection, and remote situational reporting — but many solutions are short-range, power-intensive, or not designed for harsh field conditions.</p>
+      </div>
+
+      <div class="card fade-in">
+        <div class="tag" style="margin-bottom:0.75rem">Research Gap</div>
+        <p>Existing systems lack an integrated wearable design combining health monitoring, fall detection, location awareness, and long-range secure transmission in a field-ready format. Most dashboards display raw sensor readings without predictive decision-support for health or link reliability.</p>
+      </div>
+
+      <div class="card fade-in">
+        <div class="tag" style="margin-bottom:0.75rem">Research Problem</div>
+        <p>Soldiers in remote or high-risk environments may suffer injuries or lose communication without immediate support. Delayed detection reduces survival chances and compromises mission effectiveness. The system must convert field data into actionable intelligence with low latency under limited bandwidth.</p>
+      </div>
+
+      <div class="card fade-in">
+        <div class="tag" style="margin-bottom:0.75rem">Research Objectives</div>
+        <ul>
+          <li>Monitor vital signs in near real time</li>
+          <li>Detect fall events and emergency conditions quickly</li>
+          <li>Transmit alerts over long distances securely</li>
+          <li>Provide a simple wearable architecture for field use</li>
+          <li>Visualize soldier health and GPS via a live dashboard</li>
+          <li>Predict health risk and communication link risk using ML</li>
+        </ul>
+      </div>
+
+      <div class="card domain-card-accent fade-in">
+        <div class="tag" style="margin-bottom:0.75rem">Methodology</div>
+        <p>The project uses a <strong style="color:#fff">two-unit wearable architecture</strong>. The wrist unit captures health data using MAX30102 and MLX90614 sensors. The shoulder unit performs fall detection via MPU6050, acquires GPS coordinates, and forwards integrated data through SX1278 LoRa to the monitoring side.</p>
+        <p style="margin-top:0.75rem">For visualization, a master ESP32 node forwards parsed data via Wi-Fi using MQTT/HTTP. Node-RED handles backend processing, and the dashboard presents live metrics, map tracking, and alert states. A prediction layer classifies health risk as <strong style="color:var(--green)">Normal / Warning / Critical</strong> and link risk as <strong style="color:var(--cyan)">Stable / Weak / High Risk</strong>.</p>
+        <div class="tech-pills" style="margin-top:1rem">
+          <span class="tech-pill">ESP32</span>
+          <span class="tech-pill">MAX30102</span>
+          <span class="tech-pill">MLX90614</span>
+          <span class="tech-pill">MPU6050</span>
+          <span class="tech-pill">NEO-M8N GPS</span>
+          <span class="tech-pill">SX1278 LoRa</span>
+          <span class="tech-pill">React.js</span>
+          <span class="tech-pill">Node-RED</span>
+          <span class="tech-pill">MQTT</span>
+          <span class="tech-pill">Python ML</span>
+          <span class="tech-pill">AES Encryption</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INDIVIDUAL CONTRIBUTIONS -->
+<section class="section" id="contributions">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-num">02 — MODULES</div>
+      <div class="section-title-wrap">
+        <h2>Individual <span class="dim">Contributions</span></h2>
+        <div class="section-rule"></div>
+      </div>
+    </div>
+
+    <div class="contrib-grid">
+      <div class="contrib-card fade-in">
+        <div class="contrib-num">MODULE // 01</div>
+        <div class="contrib-name">Samarasinghe S.C.D.</div>
+        <div class="contrib-role">Communication &amp; Security Module</div>
+        <ul class="contrib-list">
+          <li>Designed secure long-range communication using SX1278 LoRa</li>
+          <li>Implemented AES encryption and HMAC authentication</li>
+          <li>Built multi-hop relay networking for extended battlefield range</li>
+          <li>Ensured data integrity and confidentiality between soldier and HQ</li>
+        </ul>
+      </div>
+
+      <div class="contrib-card fade-in">
+        <div class="contrib-num">MODULE // 02</div>
+        <div class="contrib-name">Mudalige D.H.T.H.</div>
+        <div class="contrib-role">System Architecture Module</div>
+        <ul class="contrib-list">
+          <li>Real-time soldier tracking using GPS with Kalman filtering</li>
+          <li>Integrated MPU6050 for motion tracking and sensor fusion</li>
+          <li>Designed algorithms combining GPS, velocity, and IMU data</li>
+          <li>Handled GPS outages using predictive updates</li>
+        </ul>
+      </div>
+
+      <div class="contrib-card fade-in">
+        <div class="contrib-num">MODULE // 03</div>
+        <div class="contrib-name">Kishoban R.</div>
+        <div class="contrib-role">Health Monitoring Module</div>
+        <ul class="contrib-list">
+          <li>Wearable IoT sensor integration for physiological monitoring</li>
+          <li>Captures heart rate, SpO₂, and body temperature in real time</li>
+          <li>Implemented intelligent fall detection algorithms for emergency alerts</li>
+          <li>Embedded system processing pipeline using ESP32</li>
+        </ul>
+      </div>
+
+      <div class="contrib-card fade-in">
+        <div class="contrib-num">MODULE // 04</div>
+        <div class="contrib-name">Kumbukkotuwa K.R.D.M.</div>
+        <div class="contrib-role">Data Visualization &amp; System Interface</div>
+        <ul class="contrib-list">
+          <li>Built real-time dashboard with React.js and Node-RED</li>
+          <li>Integrated MQTT/HTTP for low-latency ESP32 data updates</li>
+          <li>Implemented gauges, GPS map tracking, and color-coded alerts</li>
+          <li>ML health risk and link quality predictions on dashboard</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MILESTONES -->
+<section class="section" id="milestones">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-num">03 — TIMELINE</div>
+      <div class="section-title-wrap">
+        <h2>Project <span class="dim">Milestones</span></h2>
+        <div class="section-rule"></div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item fade-in">
+        <div class="tl-date">10 SEP 2025</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-title">Project Proposal</div>
+          <div class="tl-desc">Initial concept presentation, problem statement, objectives, and proposed solution architecture.</div>
+        </div>
+      </div>
+      <div class="timeline-item fade-in">
+        <div class="tl-date">06 JAN 2026</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-title">Progress Presentation 1</div>
+          <div class="tl-desc">Initial implementation progress, hardware setup, sensor integration, and early testing results.</div>
+        </div>
+      </div>
+      <div class="timeline-item fade-in">
+        <div class="tl-date">11 MAR 2026</div>
+        <div class="tl-dot"></div>
+        <div class="tl-content">
+          <div class="tl-title">Progress Presentation 2</div>
+          <div class="tl-desc">Integrated system demonstration, module validation, ML pipeline evaluation progress, and dashboard showcase.</div>
+        </div>
+      </div>
+      <div class="timeline-item fade-in">
+        <div class="tl-date">04 MAY 2026</div>
+        <div class="tl-dot" style="background:var(--amber); box-shadow: 0 0 12px rgba(255,184,48,0.5)"></div>
+        <div class="tl-content">
+          <div class="tl-title" style="color:var(--amber)">Final Viva</div>
+          <div class="tl-desc">Final system demonstration, report submission, and overall evaluation. Completed.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOCUMENTS -->
+<section class="section" id="documents">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-num">04 — DOCUMENTS</div>
+      <div class="section-title-wrap">
+        <h2>Research <span class="dim">Documents</span></h2>
+        <div class="section-rule"></div>
+      </div>
+    </div>
+
+    <div class="doc-grid">
+      <div class="doc-card fade-in">
+        <div class="doc-icon">📋</div>
+        <div class="doc-name">Project TAF Document</div>
+        <a class="doc-link" href="https://mysliit-my.sharepoint.com/:f:/g/personal/it22168368_my_sliit_lk/IgCIGptZNjHrRqStpB2labciAfEVzcjGGzXkzxCNmKwbEm0?e=PifBtF" target="_blank">View Document</a>
+      </div>
+      <div class="doc-card fade-in">
+        <div class="doc-icon">📄</div>
+        <div class="doc-name">Proposal Document</div>
+        <a class="doc-link" href="https://mysliit-my.sharepoint.com/:f:/g/personal/it22168368_my_sliit_lk/IgB9RUICaaOORpytzD4DGK1zASt6W6td-xJoSPhBOGFtkJA?e=sZgutl" target="_blank">View Document</a>
+      </div>
+      <div class="doc-card fade-in">
+        <div class="doc-icon">✅</div>
+        <div class="doc-name">Status Documents / Checklists</div>
+        <a class="doc-link" href="https://mysliit-my.sharepoint.com/:f:/g/personal/it22168368_my_sliit_lk/IgAeimswJsYBTKJAnr6hONCMAdlOlGxL_zwtA5DL4gAEJwg?e=Da3Th4" target="_blank">View Document</a>
+      </div>
+      <div class="doc-card fade-in">
+        <div class="doc-icon">📚</div>
+        <div class="doc-name">Final Thesis Document</div>
+        <a class="doc-link" href="https://mysliit-my.sharepoint.com/:f:/g/personal/it22168368_my_sliit_lk/IgChtECV3y8RQJI-gJHggConAZl63xaa0q6m5fYxLr-WCJs?e=mKaL5H" target="_blank">View Document</a>
+      </div>
+      <div class="doc-card fade-in">
+        <div class="doc-icon">🔬</div>
+        <div class="doc-name">Research Paper</div>
+        <a class="doc-link" href="https://mysliit-my.sharepoint.com/:f:/g/personal/it22168368_my_sliit_lk/IgBk_Op7ghWpTqQ6ZuyOMuyIAeSMddkw5-pudtrhYrQVPc8?e=Ub00h7" target="_blank">View Document</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDES -->
+<section class="section" id="slides">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-num">05 — SLIDES</div>
+      <div class="section-title-wrap">
+        <h2>Presentation <span class="dim">Slides</span></h2>
+        <div class="section-rule" style="background: linear-gradient(90deg, var(--cyan), transparent)"></div>
+      </div>
+    </div>
+
+    <div class="grid-4" style="gap:1.25rem">
+      <div class="slide-card fade-in">
+        <div class="slide-icon">🎯</div>
+        <div class="slide-name">Proposal Presentation</div>
+        <a class="slide-link" href="https://mysliit-my.sharepoint.com/:p:/g/personal/it22168368_my_sliit_lk/IQAgsZIqoyvQSIynr5PwZpfQAdQXSCL6RO87QYu2Z0_WHeE?e=x0TCmm" target="_blank">View Slides</a>
+      </div>
+      <div class="slide-card fade-in">
+        <div class="slide-icon">📊</div>
+        <div class="slide-name">Progress Presentation 1</div>
+        <a class="slide-link" href="https://mysliit-my.sharepoint.com/:p:/g/personal/it22168368_my_sliit_lk/IQCQ7KQ-r-MZTLlLab3ZoRtdAevlmDCNlfqvQH3e9o6mjd8?e=EtGmho" target="_blank">View Slides</a>
+      </div>
+      <div class="slide-card fade-in">
+        <div class="slide-icon">📈</div>
+        <div class="slide-name">Progress Presentation 2</div>
+        <a class="slide-link" href="https://mysliit-my.sharepoint.com/:p:/g/personal/it22168368_my_sliit_lk/IQB3EzHTxKhxS7SpRyQQe1gsAdQJHsS_kekBd5S2NbDO69s?e=cCmw5U" target="_blank">View Slides</a>
+      </div>
+      <div class="slide-card fade-in">
+        <div class="slide-icon">🏆</div>
+        <div class="slide-name">Final Presentation</div>
+        <a class="slide-link" href="https://mysliit-my.sharepoint.com/:p:/g/personal/it22168368_my_sliit_lk/IQBj2RDlWDYlTonXgFE8t1SUARm-6jaHg5h98Dzsf4V5kq4?e=3NJI5O" target="_blank">View Slides</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="section" id="team">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-num">06 — TEAM</div>
+      <div class="section-title-wrap">
+        <h2>About <span class="dim">Us</span></h2>
+        <div class="section-rule"></div>
+      </div>
+    </div>
+
+    <div class="team-outer">
+      <!-- Supervisors -->
+      <div>
+        <div class="tag" style="margin-bottom:1rem">Supervisors</div>
+        <div class="supervisor-row">
+          <div class="sup-card fade-in">
+            <div class="sup-img-wrap">
+              <img src="images/supervisor.jpeg" alt="Supervisor" loading="lazy">
+            </div>
+            <div>
+              <div class="sup-label">Supervisor</div>
+              <div class="sup-name">Ms. J. Anuradha</div>
+              <div class="sup-meta">
+                <div><a href="mailto:anuradha.j@sliit.lk">anuradha.j@sliit.lk</a></div>
+                <div>Project ID: 25-26J-014</div>
+                <div>Sri Lanka Institute of Information Technology</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sup-card fade-in">
+            <div class="sup-img-wrap">
+              <img src="images/co-super.jpeg" alt="Co-Supervisor" loading="lazy">
+            </div>
+            <div>
+              <div class="sup-label">Co-Supervisor</div>
+              <div class="sup-name">Mr. Dinith Primal</div>
+              <div class="sup-meta">
+                <div><a href="mailto:dinith.p@sliit.lk">dinith.p@sliit.lk</a></div>
+                <div>Sri Lanka Institute of Information Technology</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Members -->
+      <div>
+        <div class="tag" style="margin-bottom:1rem">Research Members</div>
+        <div class="member-grid">
+          <div class="member-card fade-in">
+            <img class="member-img" src="images/kishoban.jpeg" alt="Kishoban R." loading="lazy">
+            <div class="member-info">
+              <div class="member-id">IT22171238</div>
+              <div class="member-name">Kishoban R.</div>
+              <div class="member-role">Health Monitoring Module</div>
+              <div class="member-email">it22171238@my.sliit.lk</div>
+            </div>
+          </div>
+
+          <div class="member-card fade-in">
+            <img class="member-img" src="images/mudalige.jpeg" alt="Mudalige D.H.T.H." loading="lazy">
+            <div class="member-info">
+              <div class="member-id">IT22279248</div>
+              <div class="member-name">Mudalige D.H.T.H.</div>
+              <div class="member-role">System Architecture Module</div>
+              <div class="member-email">it22279248@my.sliit.lk</div>
+            </div>
+          </div>
+
+          <div class="member-card fade-in">
+            <img class="member-img" src="images/samarasinghe.jpeg" alt="Samarasinghe S.C.D." loading="lazy">
+            <div class="member-info">
+              <div class="member-id">IT22073150</div>
+              <div class="member-name">Samarasinghe S.C.D.</div>
+              <div class="member-role">Communication &amp; Security</div>
+              <div class="member-email">it22073150@my.sliit.lk</div>
+            </div>
+          </div>
+
+          <div class="member-card fade-in">
+            <img class="member-img" src="images/kumbukkotuwa.jpeg" alt="Kumbukkotuwa K.R.D.M." loading="lazy">
+            <div class="member-info">
+              <div class="member-id">IT22168368</div>
+              <div class="member-name">Kumbukkotuwa K.R.D.M.</div>
+              <div class="member-role">Visualization &amp; Interface</div>
+              <div class="member-email">it22168368@my.sliit.lk</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-num">07 — CONTACT</div>
+      <div class="section-title-wrap">
+        <h2>Get in <span class="dim">Touch</span></h2>
+        <div class="section-rule" style="background:linear-gradient(90deg, var(--cyan), transparent)"></div>
+      </div>
+    </div>
+
+    <div class="contact-wrap">
+      <div class="contact-info fade-in">
+        <div class="contact-info-item">
+          <div class="ci-icon">✉</div>
+          <div>
+            <div class="ci-label">Email</div>
+            <div class="ci-value">battlebuddy.research@gmail.com</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="ci-icon">📞</div>
+          <div>
+            <div class="ci-label">Phone</div>
+            <div class="ci-value">+94 (71) 585 6639</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="ci-icon">🏛</div>
+          <div>
+            <div class="ci-label">Institution</div>
+            <div class="ci-value">Sri Lanka Institute of Information Technology (SLIIT)</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="ci-icon">#</div>
+          <div>
+            <div class="ci-label">Project ID</div>
+            <div class="ci-value">25-26J-014</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-form-wrap fade-in">
+        <div class="form-title">// Send a Message</div>
+        <div id="form-alert" style="display:none; padding:0.75rem 1rem; border-radius:2px; font-family:var(--mono); font-size:0.75rem; letter-spacing:0.08em; margin-bottom:1rem;"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Name</label>
+            <input id="cf-name" type="text" placeholder="Your name">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input id="cf-email" type="email" placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input id="cf-subject" type="text" placeholder="Regarding Battle Buddy 2.0...">
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="cf-message" rows="4" placeholder="Your message..."></textarea>
+        </div>
+        <button class="btn-submit" id="cf-submit" onclick="sendEmail()">SEND MESSAGE</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <span>BATTLE BUDDY 2.0</span> — Real-Time Soldier Health &amp; Location Monitoring System
+      </div>
+      <div class="footer-right">
+        SLIIT © 2026 — Project 25-26J-014
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── EmailJS Setup ──────────────────────────────────────────────
+  // SETUP STEPS (one-time, free):
+  // 1. Go to https://www.emailjs.com → Sign Up (free)
+  // 2. Add Email Service: Gmail → connect dasunmalinga2001@gmail.com
+  //    Copy your SERVICE_ID (e.g. "service_abc123")
+  // 3. Create Email Template → recommended settings:
+  //      To Email: {{to_email}}
+  //      From Name: Battle Buddy Website
+  //      Reply To: {{reply_to}}
+  //      Subject: Contact Us: {{subject}}
+  //      Body: {{message}}
+  //    Copy your TEMPLATE_ID (e.g. "template_xyz789")
+  // 4. Go to Account → API Keys → copy your PUBLIC_KEY
+  // 5. Replace the 3 placeholder values below with your real IDs
+  // ──────────────────────────────────────────────────────────────
+
+  const EMAILJS_PUBLIC_KEY  = "MHty3EuIvrnh-k7eT";   // ← replace
+  const EMAILJS_SERVICE_ID  = "service_oxxshva";   // ← replace
+  const EMAILJS_TEMPLATE_ID = "template_jglu0br";  // ← replace
+
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('form-alert');
+    el.textContent = msg;
+    el.style.display = 'block';
+    if (type === 'success') {
+      el.style.background = 'rgba(0,200,122,0.1)';
+      el.style.border = '1px solid rgba(0,200,122,0.3)';
+      el.style.color = 'var(--green)';
+    } else {
+      el.style.background = 'rgba(255,59,59,0.1)';
+      el.style.border = '1px solid rgba(255,59,59,0.3)';
+      el.style.color = 'var(--red)';
+    }
+  }
+
+  async function sendEmail() {
+    const name    = document.getElementById('cf-name').value.trim();
+    const email   = document.getElementById('cf-email').value.trim();
+    const subject = document.getElementById('cf-subject').value.trim();
+    const message = document.getElementById('cf-message').value.trim();
+    const btn     = document.getElementById('cf-submit');
+
+    if (!name || !email || !subject || !message) {
+      showAlert('⚠ Please fill in all fields before sending.', 'error');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showAlert('⚠ Please enter a valid email address.', 'error');
+      return;
+    }
+    if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+      showAlert('⚠ EmailJS not configured yet — replace PUBLIC_KEY, SERVICE_ID, and TEMPLATE_ID in the code.', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'SENDING...';
+    btn.style.opacity = '0.7';
+
+    try {
+      const formattedMessage = `New message received from Battle Buddy website.
+
+Name: ${name}
+Email: ${email}
+Subject: ${subject}
+
+Message:
+${message}`;
+
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        from_name:  name,
+        from_email: email,
+        reply_to:   email,
+        subject:    subject,
+        message:    formattedMessage,
+        to_email:   'dasunmalinga2001@gmail.com',
+      });
+
+      showAlert('✓ Message sent successfully! We will get back to you soon.', 'success');
+      btn.textContent = 'MESSAGE SENT ✓';
+      btn.style.background = 'var(--green)';
+      btn.style.color = '#020a06';
+      document.getElementById('cf-name').value = '';
+      document.getElementById('cf-email').value = '';
+      document.getElementById('cf-subject').value = '';
+      document.getElementById('cf-message').value = '';
+
+      setTimeout(() => {
+        btn.textContent = 'SEND MESSAGE';
+        btn.style.background = 'var(--cyan)';
+        btn.style.color = '#020c10';
+        btn.style.opacity = '1';
+        btn.disabled = false;
+      }, 4000);
+
+    } catch (err) {
+      showAlert('✗ Failed to send message. Please try again or email us directly.', 'error');
+      btn.textContent = 'SEND MESSAGE';
+      btn.style.opacity = '1';
+      btn.disabled = false;
+      console.error('EmailJS error:', err);
+    }
+  }
+
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, 80 * i);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Active nav link highlight on scroll
+  const sections = document.querySelectorAll('section[id], header[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      if (window.scrollY >= section.offsetTop - 120) current = section.id;
+    });
+    navLinks.forEach(link => {
+      link.style.color = link.getAttribute('href') === `#${current}` ? 'var(--green)' : '';
+    });
+  }, { passive: true });
+</script>
+</body>
+</html>
